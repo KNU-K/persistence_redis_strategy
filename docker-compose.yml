@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  redis-master:
+    image: redis:7.0
+    container_name: redis-master
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "masterpassword"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-master-data:/data
+
+  redis-replica:
+    image: redis:7.0
+    container_name: redis-replica
+    command: ["redis-server", "--appendonly", "yes", "--replicaof", "redis-master", "6379", "--masterauth", "masterpassword"]
+    depends_on:
+      - redis-master
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-replica-data:/data
+
+  sentinel:
+    image: redis:7.0
+    container_name: redis-sentinel
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
+    ports:
+      - "26379:26379"
+    volumes:
+      - ./sentinel.conf:/etc/redis/sentinel.conf
+    depends_on:
+      - redis-master
+      - redis-replica
+
+volumes:
+  redis-master-data:
+  redis-replica-data:
+
+# sentinel.conf
+# You should create a `sentinel.conf` file in the same directory as this Docker Compose file with the following contents:
+
+# sentinel monitor mymaster redis-master 6379 2
+# sentinel auth-pass mymaster masterpassword
+# sentinel down-after-milliseconds mymaster 5000
+# sentinel failover-timeout mymaster 10000
+# sentinel parallel-syncs mymaster 1
