@@ -6,7 +6,7 @@ services:
     container_name: redis-master
     command: ["redis-server", "--appendonly", "yes", "--requirepass", "masterpassword"]
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis-master-data:/data
 
@@ -17,7 +17,7 @@ services:
     depends_on:
       - redis-master
     ports:
-      - "6380:6379"
+      - "6381:6379"
     volumes:
       - redis-replica-data:/data
 
